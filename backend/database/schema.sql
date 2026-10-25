@@ -136,27 +136,19 @@ CREATE TABLE adoption (
   FOREIGN KEY (user_id)   REFERENCES users(user_id)
 );
 
--- 10. FOSTER_PARENT (a registered user who fosters; name, email and phone
---     come from users with a join; only capacity is stored here)
-CREATE TABLE foster_parent (
-  foster_id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id   INT NOT NULL UNIQUE,
-  capacity  INT NOT NULL DEFAULT 1,
-  FOREIGN KEY (user_id) REFERENCES users(user_id)
-);
-
--- 11. FOSTER_ASSIGNMENT (one row per foster request)
+-- 10. FOSTER_ASSIGNMENT (one row per foster request)
+-- The foster parent is a registered user, so this table points to users.
 -- start_date and end_date are the expected dates until the admin approves.
 -- 'Ended' = foster period finished and the animal went back to Available.
 CREATE TABLE foster_assignment (
   foster_record_id INT AUTO_INCREMENT PRIMARY KEY,
   animal_id        INT NOT NULL,
-  foster_id        INT NOT NULL,
+  user_id          INT NOT NULL,
   request_date     DATE NOT NULL,
   start_date       DATE NULL,
   end_date         DATE NULL,
   status           ENUM('Pending','Approved','Rejected','Ended') NOT NULL DEFAULT 'Pending',
   notes            VARCHAR(255),
   FOREIGN KEY (animal_id) REFERENCES animal(animal_id),
-  FOREIGN KEY (foster_id) REFERENCES foster_parent(foster_id)
+  FOREIGN KEY (user_id)   REFERENCES users(user_id)
 );
