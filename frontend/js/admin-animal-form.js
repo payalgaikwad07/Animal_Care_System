@@ -98,7 +98,7 @@ async function start() {
   }
 
   if (edit) {
-    $('title').textContent = 'Edit Animal';
+    $('title').textContent = (me.role === 'Global Admin') ? 'View Animal' : 'Edit Animal';
     $('add-only').classList.add('d-none');
     loadAnimal();
     return;
