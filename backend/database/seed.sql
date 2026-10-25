@@ -30,7 +30,7 @@ INSERT INTO shelter (shelter_id, name, address, city, phone, email, capacity) VA
 -- 2. STAFF
 -- Global Admin (shelter_id is NULL)
 INSERT INTO staff (staff_id, name, email, phone, role, shelter_id, can_login, password_hash) VALUES
-(1, 'Global Admin Super', 'global@happypaws.org', '9876543210', 'Global Admin', NULL, 1,
+(1, 'Main Admin', 'global@happypaws.org', '9876543210', 'Global Admin', NULL, 1,
  '$2b$10$f8tJG4ejzt7B7PlEmnwbB.I0nqtzo6QGSgVjUGh/FC3DJ.k8/s.RC');
 
 -- Shelter 1 Staff
