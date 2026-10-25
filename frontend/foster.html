@@ -179,8 +179,8 @@
             document.getElementById('animalAge').textContent = `Age: ${formatAge(a.age_months)}`;
             document.getElementById('animalShelter').textContent = `Shelter: ${a.shelter_name} (${a.shelter_city})`;
             const img = document.getElementById('animalImg');
-            img.src = a.image_url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1';
-            img.onerror = () => { img.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1'; };
+            img.src = a.image_url || '/images/animals/default.jpg';
+            img.onerror = () => { img.src = '/images/animals/default.jpg'; };
 
             // 4. Pre-fill User Profile Details
             const profileRes = await api('/api/user/profile');

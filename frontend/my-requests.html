@@ -104,9 +104,9 @@
                 colImg.className = 'col-auto';
                 const img = document.createElement('img');
                 img.className = 'animal-thumb bg-light';
-                img.src = r.image_url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1';
+                img.src = r.image_url || '/images/animals/default.jpg';
                 img.alt = r.animal_name;
-                img.onerror = () => { img.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1'; };
+                img.onerror = () => { img.src = '/images/animals/default.jpg'; };
                 colImg.appendChild(img);
 
                 // Column 2: Details
