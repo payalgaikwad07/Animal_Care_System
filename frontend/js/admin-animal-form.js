@@ -18,17 +18,6 @@ function fillStaff(list) {
   });
 }
 
-// add a row of cells to a table body (textContent, so no HTML injection)
-function addRow(tbody, cells) {
-  const tr = document.createElement('tr');
-  cells.forEach((c) => {
-    const td = document.createElement('td');
-    td.textContent = c || '-';
-    tr.appendChild(td);
-  });
-  tbody.appendChild(tr);
-}
-
 // one row of vaccine inputs
 function addVac() {
   const row = document.createElement('div');
@@ -81,14 +70,7 @@ async function loadAnimal() {
   $('shelter').appendChild(so);
   $('shelter').disabled = true;
 
-  // history, read-only
-  $('history').classList.remove('d-none');
-  a.medical.forEach((m) => {
-    addRow($('med-rows'), [String(m.visit_date).slice(0, 10), m.diagnosis, m.treatment, m.examined_by]);
-  });
-  a.vaccines.forEach((v) => {
-    addRow($('vac-rows'), [v.vaccine_name, String(v.date_given).slice(0, 10), v.next_due_date ? String(v.next_due_date).slice(0, 10) : '']);
-  });
+  
 }
 
 async function start() {

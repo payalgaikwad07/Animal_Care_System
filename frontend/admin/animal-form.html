@@ -107,21 +107,11 @@
     </form>
 
     <!-- Edit mode only: history, read-only -->
-    <div id="history" class="d-none mt-5">
-      <h5>Medical history</h5>
-      <table class="table table-sm bg-white">
-        <thead><tr><th>Date</th><th>Diagnosis</th><th>Treatment</th><th>Examined by</th></tr></thead>
-        <tbody id="med-rows"></tbody>
-      </table>
-      <h5 class="mt-4">Vaccinations</h5>
-      <table class="table table-sm bg-white">
-        <thead><tr><th>Vaccine</th><th>Date given</th><th>Next due</th></tr></thead>
-        <tbody id="vac-rows"></tbody>
-      </table>
-    </div>
+    <div id="records" class="d-none mt-5"></div>
   </main>
 
   <script src="/js/common.js"></script>
   <script src="/js/admin-animal-form.js"></script>
+  <script src="/js/admin-records.js"></script>
 </body>
 </html>
