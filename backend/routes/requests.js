@@ -4,14 +4,15 @@ const { needLogin, onlyRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-// All routes in this file are restricted to logged-in users with role 'user'
-router.use(needLogin, onlyRole('user'));
+// The check is put on each route (not with router.use), so it can never block
+// other /api routes that live in other files.
+const onlyUser = [needLogin, onlyRole('user')];
 
 // -------------------------------------------------------------
 // 1. GET /api/user/profile
 // Fetches the logged-in user's details to pre-fill Adopt and Foster forms
 // -------------------------------------------------------------
-router.get('/user/profile', async (req, res) => {
+router.get('/user/profile', ...onlyUser, async (req, res) => {
     try {
         const userId = req.session.user.id;
         const [rows] = await db.query(
@@ -57,7 +58,7 @@ async function syncUserDetails(userId, req, { name, phone, address }) {
 // - User cannot submit a second active request for the same animal.
 // - Saves as 'Pending' with today's date.
 // -------------------------------------------------------------
-router.post('/adopt', async (req, res) => {
+router.post('/adopt', ...onlyUser, async (req, res) => {
     try {
         const userId = req.session.user.id;
         const { animal_id, name, phone, address, notes } = req.body;
@@ -125,7 +126,7 @@ router.post('/adopt', async (req, res) => {
 // - Cannot submit a second active foster request for the same animal.
 // - Saves as 'Pending' with today's date.
 // -------------------------------------------------------------
-router.post('/foster', async (req, res) => {
+router.post('/foster', ...onlyUser, async (req, res) => {
     try {
         const userId = req.session.user.id;
         const { animal_id, name, phone, address, start_date, end_date, notes } = req.body;
@@ -194,7 +195,7 @@ router.post('/foster', async (req, res) => {
 // 4. GET /api/my-requests
 // Returns all adoption and foster requests submitted by the current user
 // -------------------------------------------------------------
-router.get('/my-requests', async (req, res) => {
+router.get('/my-requests', ...onlyUser, async (req, res) => {
     try {
         const userId = req.session.user.id;
 

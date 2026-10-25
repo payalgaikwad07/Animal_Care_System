@@ -32,23 +32,19 @@ app.get('/api/test', (req, res) => {
     res.json({ n: 12 });
 });
 
-// Authentication routes
-app.use('/api', require('./routes/auth'));
-// Public animals routes
-app.use('/api', require('./routes/animals'));
-// Public donations routes
-app.use('/api', require('./routes/donations'));
-// User requests routes (Adopt, Foster, My Requests)
-app.use('/api', require('./routes/requests'));
-
-
-//Admin routes
+// Admin routes
 app.use('/api/admin', require('./routes/admin-animals'));
 app.use('/api/admin', require('./routes/admin-records'));
 app.use('/api/admin', require('./routes/admin-requests'));
 app.use('/api/admin', require('./routes/admin-staff'));
 app.use('/api/admin', require('./routes/admin-shelters'));
 app.use('/api/admin', require('./routes/admin-donations'));
+
+// Authentication & public routes
+app.use('/api', require('./routes/auth'));
+app.use('/api', require('./routes/animals'));
+app.use('/api', require('./routes/donations'));
+app.use('/api', require('./routes/requests'));
 
 // Start the server
 app.listen(PORT, () => {
