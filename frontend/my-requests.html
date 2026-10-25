@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Requests - Animal Shelter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .request-card {
+            transition: box-shadow 0.2s;
+        }
+
+        .request-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .animal-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Common Navigation Bar -->
+    <div id="nav"></div>
+
+    <main class="container py-4" style="max-width: 900px;">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="fw-bold mb-1">My Applications & Requests</h2>
+                <p class="text-muted mb-0">Track the status of your adoption and foster care requests.</p>
+            </div>
+            <a href="/animals.html" class="btn btn-outline-primary btn-sm">Browse More Pets</a>
+        </div>
+
+        <!-- Error Box -->
+        <div id="errorBox" class="alert alert-danger d-none my-3"></div>
+
+        <!-- Loading Spinner -->
+        <div id="loading" class="text-center py-5 text-muted">
+            Loading your requests...
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="card border-0 shadow-sm p-5 text-center d-none my-4">
+            <div class="mb-3" style="font-size: 3rem;">📋</div>
+            <h4 class="fw-bold mb-2">No Requests Found</h4>
+            <p class="text-muted">You haven't submitted any adoption or foster requests yet.</p>
+            <div>
+                <a href="/animals.html" class="btn btn-primary">Find a Pet to Adopt or Foster</a>
+            </div>
+        </div>
+
+        <!-- Requests List -->
+        <div id="requestsList" class="d-flex flex-column gap-3"></div>
+    </main>
+
+    <script src="/js/common.js"></script>
+    <script>
+        async function loadMyRequests() {
+            const errBox = document.getElementById('errorBox');
+            const loading = document.getElementById('loading');
+            const emptyState = document.getElementById('emptyState');
+            const listContainer = document.getElementById('requestsList');
+
+            // 1. Verify Authentication
+            const me = await api('/api/me');
+            if (!me.ok || !me.data.loggedIn || me.data.role !== 'user') {
+                window.location = `/login.html?next=${encodeURIComponent('/my-requests.html')}`;
+                return;
+            }
+
+            // 2. Fetch User's Requests
+            const res = await api('/api/my-requests');
+            loading.classList.add('d-none');
+
+            if (!res.ok) {
+                errBox.textContent = res.data.error || 'Failed to load your requests.';
+                errBox.classList.remove('d-none');
+                return;
+            }
+
+            const list = res.data || [];
+            if (list.length === 0) {
+                emptyState.classList.remove('d-none');
+                return;
+            }
+
+            // Render Each Request
+            list.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'card border-0 shadow-sm p-3 request-card';
+
+                const row = document.createElement('div');
+                row.className = 'row g-3 align-items-center';
+
+                // Column 1: Animal Photo Thumbnail
+                const colImg = document.createElement('div');
+                colImg.className = 'col-auto';
+                const img = document.createElement('img');
+                img.className = 'animal-thumb bg-light';
+                img.src = r.image_url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1';
+                img.alt = r.animal_name;
+                img.onerror = () => { img.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1'; };
+                colImg.appendChild(img);
+
+                // Column 2: Details
+                const colDetails = document.createElement('div');
+                colDetails.className = 'col';
+
+                const topRow = document.createElement('div');
+                topRow.className = 'd-flex justify-content-between align-items-start flex-wrap gap-2 mb-1';
+
+                const nameLink = document.createElement('a');
+                nameLink.href = `/animal.html?id=${r.animal_id}`;
+                nameLink.className = 'h5 fw-bold text-decoration-none text-dark mb-0';
+                nameLink.textContent = r.animal_name;
+
+                // Status badge
+                const badge = document.createElement('span');
+                if (r.status === 'Approved') {
+                    badge.className = 'badge bg-success px-3 py-2';
+                } else if (r.status === 'Pending') {
+                    badge.className = 'badge bg-warning text-dark px-3 py-2';
+                } else if (r.status === 'Rejected') {
+                    badge.className = 'badge bg-danger px-3 py-2';
+                } else {
+                    badge.className = 'badge bg-secondary px-3 py-2';
+                }
+                badge.textContent = r.status;
+
+                topRow.appendChild(nameLink);
+                topRow.appendChild(badge);
+
+                // Subtitle (Type & Breed)
+                const sub = document.createElement('p');
+                sub.className = 'text-muted small mb-2';
+                sub.textContent = `${r.request_type} Application • ${r.species}${r.breed ? ' (' + r.breed + ')' : ''} • Shelter: ${r.shelter_name} (${r.shelter_city})`;
+
+                // Dates and Info
+                const meta = document.createElement('div');
+                meta.className = 'small text-secondary';
+
+                const reqDate = document.createElement('div');
+                reqDate.textContent = `📅 Submitted on: ${r.request_date}`;
+                meta.appendChild(reqDate);
+
+                if (r.request_type === 'Foster' && r.start_date && r.end_date) {
+                    const fosterDates = document.createElement('div');
+                    fosterDates.textContent = `⏳ Expected Duration: ${r.start_date} to ${r.end_date}`;
+                    meta.appendChild(fosterDates);
+                }
+
+                if (r.request_type === 'Adoption' && r.adopted_date) {
+                    const adoptDate = document.createElement('div');
+                    adoptDate.className = 'text-success fw-semibold';
+                    adoptDate.textContent = `🏠 Finalized Adoption Date: ${r.adopted_date}`;
+                    meta.appendChild(adoptDate);
+                }
+
+                if (r.notes) {
+                    const notesDiv = document.createElement('div');
+                    notesDiv.className = 'mt-1 text-muted fst-italic';
+                    notesDiv.textContent = `“${r.notes}”`;
+                    meta.appendChild(notesDiv);
+                }
+
+                colDetails.appendChild(topRow);
+                colDetails.appendChild(sub);
+                colDetails.appendChild(meta);
+
+                row.appendChild(colImg);
+                row.appendChild(colDetails);
+                card.appendChild(row);
+                listContainer.appendChild(card);
+            });
+        }
+
+        loadMyRequests();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Foster an Animal - Animal Shelter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Common Navigation Bar -->
+    <div id="nav"></div>
+
+    <main class="container py-4" style="max-width: 800px;">
+        <div class="mb-3">
+            <a id="backLink" href="/animals.html" class="text-decoration-none text-secondary">
+                &larr; Back to animal details
+            </a>
+        </div>
+
+        <!-- Error Box -->
+        <div id="errorBox" class="alert alert-danger d-none my-3"></div>
+
+        <!-- Main Container -->
+        <div id="mainContainer" class="d-none">
+            <h2 class="fw-bold mb-3">Foster Care Application</h2>
+
+            <div class="row g-4">
+                <!-- Animal Read-Only Summary Card -->
+                <div class="col-md-5">
+                    <div class="card border-0 shadow-sm overflow-hidden sticky-top" style="top: 20px;">
+                        <img id="animalImg" class="card-img-top" style="height: 220px; object-fit: cover;"
+                            alt="Animal photo">
+                        <div class="card-body">
+                            <span id="animalBadge" class="badge bg-success mb-2">Available</span>
+                            <h4 id="animalName" class="fw-bold mb-1"></h4>
+                            <p id="animalBreed" class="text-muted small mb-2"></p>
+                            <div class="border-top pt-2 small text-secondary">
+                                <p class="mb-1" id="animalAge"></p>
+                                <p class="mb-0" id="animalShelter"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application Form -->
+                <div class="col-md-7">
+                    <div id="formCard" class="card border-0 shadow-sm p-4">
+                        <h5 class="fw-bold mb-1">Your Details</h5>
+                        <p class="text-muted small mb-3">Review your information below. Editing these fields will update
+                            your profile.</p>
+
+                        <form id="fosterForm">
+                            <div class="mb-3">
+                                <label for="userName" class="form-label fw-semibold">Full Name *</label>
+                                <input type="text" id="userName" class="form-control" maxlength="100" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="userEmail" class="form-label fw-semibold">Email Address</label>
+                                <input type="email" id="userEmail" class="form-control" disabled>
+                                <div class="form-text">Email cannot be changed as it is your login ID.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="userPhone" class="form-label fw-semibold">Phone Number *</label>
+                                <input type="tel" id="userPhone" class="form-control" maxlength="15" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="userAddress" class="form-label fw-semibold">Residential Address *</label>
+                                <input type="text" id="userAddress" class="form-control" maxlength="255" required>
+                            </div>
+
+                            <!-- Foster Expected Duration -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-sm-6">
+                                    <label for="startDate" class="form-label fw-semibold">Expected Start Date *</label>
+                                    <input type="date" id="startDate" class="form-control" required>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="endDate" class="form-label fw-semibold">Expected End Date *</label>
+                                    <input type="date" id="endDate" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="fosterNotes" class="form-label fw-semibold">Experience & Environment
+                                    (Optional)</label>
+                                <textarea id="fosterNotes" class="form-control" rows="3" maxlength="255"
+                                    placeholder="Mention past fostering experience, presence of other pets, etc..."></textarea>
+                            </div>
+
+                            <div id="formError" class="alert alert-danger d-none mb-3"></div>
+
+                            <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-2 fw-semibold">
+                                Submit Foster Request
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Success Confirmation -->
+                    <div id="successCard" class="card border-0 shadow-sm p-4 text-center d-none">
+                        <div class="text-success mb-2" style="font-size: 2.5rem;">🐾</div>
+                        <h4 class="fw-bold text-success mb-2">Foster Request Submitted!</h4>
+                        <p class="text-muted small">Your foster application has been recorded with status
+                            <strong>Pending</strong>. Thank you for opening your home to a rescue pet!</p>
+                        <div class="d-flex gap-2 justify-content-center mt-3">
+                            <a href="/my-requests.html" class="btn btn-primary">View My Requests</a>
+                            <a href="/animals.html" class="btn btn-outline-secondary">Browse More Pets</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/common.js"></script>
+    <script>
+        let currentAnimalId = null;
+
+        function formatAge(months) {
+            if (!months || months < 0) return 'Unknown age';
+            if (months < 12) return months + (months === 1 ? ' month' : ' months');
+            const yrs = Math.floor(months / 12);
+            const rem = months % 12;
+            if (rem === 0) return yrs + (yrs === 1 ? ' year' : ' years');
+            return `${yrs} yr${yrs > 1 ? 's' : ''} ${rem} mo${rem > 1 ? 's' : ''}`;
+        }
+
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            currentAnimalId = params.get('id');
+
+            const errorBox = document.getElementById('errorBox');
+            const mainContainer = document.getElementById('mainContainer');
+
+            if (!currentAnimalId) {
+                errorBox.textContent = 'No animal specified. Please return to the animals page.';
+                errorBox.classList.remove('d-none');
+                return;
+            }
+
+            document.getElementById('backLink').href = `/animal.html?id=${currentAnimalId}`;
+
+            // 1. Verify User Login Status
+            const me = await api('/api/me');
+            if (!me.ok || !me.data.loggedIn || me.data.role !== 'user') {
+                const nextUrl = encodeURIComponent(`/animal.html?id=${currentAnimalId}`);
+                window.location = `/login.html?next=${nextUrl}`;
+                return;
+            }
+
+            // 2. Set min date for date inputs to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').min = today;
+            document.getElementById('endDate').min = today;
+
+            // 3. Fetch Animal Details
+            const animalRes = await api(`/api/animals/${encodeURIComponent(currentAnimalId)}`);
+            if (!animalRes.ok) {
+                errorBox.textContent = animalRes.data.error || 'Animal not found.';
+                errorBox.classList.remove('d-none');
+                return;
+            }
+
+            const a = animalRes.data;
+            if (a.status !== 'Available') {
+                errorBox.textContent = `Sorry, ${a.name} is currently ${a.status} and cannot receive new foster applications.`;
+                errorBox.classList.remove('d-none');
+                return;
+            }
+
+            // Display animal info
+            document.getElementById('animalName').textContent = a.name;
+            document.getElementById('animalBreed').textContent = `${a.species}${a.breed ? ' • ' + a.breed : ''}`;
+            document.getElementById('animalAge').textContent = `Age: ${formatAge(a.age_months)}`;
+            document.getElementById('animalShelter').textContent = `Shelter: ${a.shelter_name} (${a.shelter_city})`;
+            const img = document.getElementById('animalImg');
+            img.src = a.image_url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1';
+            img.onerror = () => { img.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1'; };
+
+            // 4. Pre-fill User Profile Details
+            const profileRes = await api('/api/user/profile');
+            if (profileRes.ok && profileRes.data) {
+                const u = profileRes.data;
+                document.getElementById('userName').value = u.name || '';
+                document.getElementById('userEmail').value = u.email || '';
+                document.getElementById('userPhone').value = u.phone || '';
+                document.getElementById('userAddress').value = u.address || '';
+            }
+
+            mainContainer.classList.remove('d-none');
+        }
+
+        // Handle Form Submit
+        document.getElementById('fosterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formError = document.getElementById('formError');
+            const submitBtn = document.getElementById('submitBtn');
+            formError.classList.add('d-none');
+
+            const name = document.getElementById('userName').value.trim();
+            const phone = document.getElementById('userPhone').value.trim();
+            const address = document.getElementById('userAddress').value.trim();
+            const start_date = document.getElementById('startDate').value;
+            const end_date = document.getElementById('endDate').value;
+            const notes = document.getElementById('fosterNotes').value.trim();
+
+            if (!name || !phone || !address || !start_date || !end_date) {
+                formError.textContent = 'Please fill out all required fields.';
+                formError.classList.remove('d-none');
+                return;
+            }
+
+            if (new Date(end_date) < new Date(start_date)) {
+                formError.textContent = 'Expected end date cannot be earlier than start date.';
+                formError.classList.remove('d-none');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const res = await api('/api/foster', 'POST', {
+                animal_id: currentAnimalId,
+                name,
+                phone,
+                address,
+                start_date,
+                end_date,
+                notes
+            });
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Foster Request';
+
+            if (!res.ok) {
+                formError.textContent = res.data.error || 'Failed to submit application.';
+                formError.classList.remove('d-none');
+                return;
+            }
+
+            // Success
+            document.getElementById('formCard').classList.add('d-none');
+            document.getElementById('successCard').classList.remove('d-none');
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
