@@ -72,9 +72,9 @@ router.get('/animals', async (req, res) => {
 
     const sid = shelterOf(req);
     if (sid) { where.push('a.shelter_id = ?'); vals.push(sid); }
-    if (req.query.status)  { where.push('a.status = ?');  vals.push(req.query.status); }
+    if (req.query.status) { where.push('a.status = ?'); vals.push(req.query.status); }
     if (req.query.species) { where.push('a.species = ?'); vals.push(req.query.species); }
-    if (req.query.name)    { where.push('a.name LIKE ?'); vals.push('%' + req.query.name + '%'); }
+    if (req.query.name) { where.push('a.name LIKE ?'); vals.push('%' + req.query.name + '%'); }
     if (req.query.due === '1') {
       // vaccination due in the next 30 days
       where.push(`EXISTS (SELECT 1 FROM vaccination v WHERE v.animal_id = a.animal_id
@@ -122,6 +122,12 @@ router.get('/animals/:id', async (req, res) => {
 // body: animal fields, plus optional  medical: {visit_date, diagnosis, treatment, staff_id}
 // and  vaccines: [{vaccine_name, date_given, next_due_date}]
 router.post('/animals', async (req, res) => {
+
+  // Global Admin cannot intake animals directly
+  if (req.session.user.role === 'Global Admin') {
+    return res.status(403).json({ error: 'Only shelter admins can intake animals.' });
+  }
+
   const b = req.body;
   const msg = checkAnimal(b);
   if (msg) return res.status(400).json({ error: msg });
@@ -173,7 +179,7 @@ router.post('/animals', async (req, res) => {
       `INSERT INTO animal (name, species, breed, age_months, gender, intake_date, status, image_url, notes, shelter_id)
        VALUES (?,?,?,?,?,?,?,?,?,?)`,
       [b.name, b.species, b.breed || null, Number(b.age_months), b.gender, intake, status,
-       b.image_url || null, b.notes || null, sid]);
+      b.image_url || null, b.notes || null, sid]);
     const id = r.insertId;
 
     if (med) {
@@ -224,7 +230,7 @@ router.put('/animals/:id', async (req, res) => {
       `UPDATE animal SET name = ?, species = ?, breed = ?, age_months = ?, gender = ?,
               status = ?, image_url = ?, notes = ? WHERE animal_id = ?`,
       [b.name, b.species, b.breed || null, Number(b.age_months), b.gender,
-       status, b.image_url || null, b.notes || null, a.animal_id]);
+        status, b.image_url || null, b.notes || null, a.animal_id]);
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
