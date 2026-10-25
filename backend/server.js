@@ -34,6 +34,8 @@ app.get('/api/test', (req, res) => {
 
 // Authentication routes
 app.use('/api', require('./routes/auth'));
+//Admin routes
+app.use('/api/admin', require('./routes/admin-animals'));
 
 // Start the server
 app.listen(PORT, () => {
