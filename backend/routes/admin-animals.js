@@ -103,7 +103,7 @@ router.get('/animals/:id', async (req, res) => {
 
     const [shelter] = await db.query('SELECT name FROM shelter WHERE shelter_id = ?', [a.shelter_id]);
     const [medical] = await db.query(
-      `SELECT m.record_id, m.visit_date, m.diagnosis, m.treatment, st.name AS examined_by
+      `SELECT m.record_id, m.staff_id, m.visit_date, m.diagnosis, m.treatment, st.name AS examined_by
        FROM medical_record m LEFT JOIN staff st ON st.staff_id = m.staff_id
        WHERE m.animal_id = ? ORDER BY m.visit_date DESC, m.record_id DESC`, [a.animal_id]);
     const [vaccines] = await db.query(
