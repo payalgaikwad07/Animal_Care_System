@@ -37,6 +37,7 @@ app.use('/api', require('./routes/auth'));
 //Admin routes
 app.use('/api/admin', require('./routes/admin-animals'));
 app.use('/api/admin', require('./routes/admin-records'));
+app.use('/api/admin', require('./routes/admin-requests'));
 
 // Start the server
 app.listen(PORT, () => {
