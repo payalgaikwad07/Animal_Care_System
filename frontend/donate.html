@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Donate - Animal Shelter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Common Navigation Bar -->
+    <div id="nav"></div>
+
+    <main class="container py-4" style="max-width: 600px;">
+        <!-- Form Card -->
+        <div id="donationCard" class="card border-0 shadow-sm p-4">
+            <h2 class="fw-bold mb-2">Support Our Animals</h2>
+            <p class="text-muted mb-4">
+                Your donation directly funds nutritious food, emergency veterinary treatments, and shelter maintenance.
+            </p>
+
+            <form id="donateForm">
+                <!-- Name -->
+                <div class="mb-3">
+                    <label for="donorName" class="form-label fw-semibold">Your Name *</label>
+                    <input type="text" id="donorName" class="form-control" maxlength="100"
+                        placeholder="e.g. Aditi Kadam" required>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="donorEmail" class="form-label fw-semibold">Email Address *</label>
+                    <input type="email" id="donorEmail" class="form-control" maxlength="100"
+                        placeholder="e.g. aditi@example.com" required>
+                    <div class="form-text">We'll link repeat donations made with this email address.</div>
+                </div>
+
+                <!-- Phone & Address -->
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6">
+                        <label for="donorPhone" class="form-label fw-semibold">Phone Number</label>
+                        <input type="tel" id="donorPhone" class="form-control" maxlength="15"
+                            placeholder="e.g. 9822012345">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="donorAddress" class="form-label fw-semibold">City / Address</label>
+                        <input type="text" id="donorAddress" class="form-control" maxlength="255"
+                            placeholder="e.g. Kothrud, Pune">
+                    </div>
+                </div>
+
+                <!-- Shelter Selection -->
+                <div class="mb-3">
+                    <label for="shelterSelect" class="form-label fw-semibold">Select Shelter to Support *</label>
+                    <select id="shelterSelect" class="form-select" required>
+                        <option value="">-- Choose a shelter --</option>
+                    </select>
+                </div>
+
+                <!-- Donation Amount -->
+                <div class="mb-3">
+                    <label for="donationAmount" class="form-label fw-semibold">Donation Amount (₹) *</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" id="donationAmount" class="form-control" min="1" step="any"
+                            placeholder="e.g. 1000" required>
+                    </div>
+                </div>
+
+                <!-- Quick Amount Selector Buttons -->
+                <div class="mb-4 d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        onclick="setAmount(500)">₹500</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        onclick="setAmount(1000)">₹1,000</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        onclick="setAmount(2500)">₹2,500</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        onclick="setAmount(5000)">₹5,000</button>
+                </div>
+
+                <!-- Error Message Container -->
+                <div id="errorMsg" class="alert alert-danger d-none mb-3"></div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-2 fw-semibold">
+                    Complete Donation
+                </button>
+            </form>
+        </div>
+
+        <!-- Thank-You Confirmation Card (hidden until donation succeeds) -->
+        <div id="thankYouCard" class="card border-0 shadow-sm p-4 text-center d-none">
+            <div class="text-success mb-3" style="font-size: 3rem;">❤️</div>
+            <h3 class="fw-bold text-success mb-2">Thank You for Your Donation!</h3>
+            <p class="text-muted">Your kindness helps us provide shelter, care, and medical treatment for rescue
+                animals.</p>
+
+            <div class="bg-light p-3 rounded-2 text-start my-3 small">
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Donor Name:</span>
+                    <strong id="confirmName"></strong>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Amount Donated:</span>
+                    <strong id="confirmAmount" class="text-success"></strong>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Shelter Supported:</span>
+                    <strong id="confirmShelter"></strong>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                    <span class="text-muted">Donation Reference ID:</span>
+                    <span id="confirmId" class="text-secondary"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-center mt-3">
+                <a href="/animals.html" class="btn btn-outline-primary">Browse Animals</a>
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">Make Another Donation</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/common.js"></script>
+    <script>
+        function setAmount(val) {
+            document.getElementById('donationAmount').value = val;
+        }
+
+        // Populate the shelter dropdown
+        async function loadShelters() {
+            const res = await api('/api/shelters');
+            if (!res.ok) return;
+
+            const select = document.getElementById('shelterSelect');
+            res.data.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.shelter_id;
+                opt.textContent = `${s.name} (${s.city})`;
+                select.appendChild(opt);
+            });
+        }
+
+        // Handle form submission
+        document.getElementById('donateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const errBox = document.getElementById('errorMsg');
+            const submitBtn = document.getElementById('submitBtn');
+            errBox.classList.add('d-none');
+
+            const name = document.getElementById('donorName').value.trim();
+            const email = document.getElementById('donorEmail').value.trim();
+            const phone = document.getElementById('donorPhone').value.trim();
+            const address = document.getElementById('donorAddress').value.trim();
+            const amount = parseFloat(document.getElementById('donationAmount').value);
+            const shelter_id = document.getElementById('shelterSelect').value;
+
+            if (!name || !email || isNaN(amount) || amount <= 0 || !shelter_id) {
+                errBox.textContent = 'Please fill out all required fields with a valid amount greater than 0.';
+                errBox.classList.remove('d-none');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            const res = await api('/api/donate', 'POST', {
+                name,
+                email,
+                phone,
+                address,
+                amount,
+                shelter_id
+            });
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Complete Donation';
+
+            if (!res.ok) {
+                errBox.textContent = res.data.error || 'Failed to process donation. Please try again.';
+                errBox.classList.remove('d-none');
+                return;
+            }
+
+            // Hide the form and show the thank-you card using safe textContent
+            document.getElementById('donationCard').classList.add('d-none');
+            const thankYouCard = document.getElementById('thankYouCard');
+            thankYouCard.classList.remove('d-none');
+
+            document.getElementById('confirmName').textContent = name;
+            document.getElementById('confirmAmount').textContent = `₹${amount.toLocaleString()}`;
+            document.getElementById('confirmShelter').textContent = res.data.shelter_name || 'Selected Shelter';
+            document.getElementById('confirmId').textContent = `#DON-${res.data.donation_id}`;
+        });
+
+        function resetForm() {
+            document.getElementById('donateForm').reset();
+            document.getElementById('errorMsg').classList.add('d-none');
+            document.getElementById('thankYouCard').classList.add('d-none');
+            document.getElementById('donationCard').classList.remove('d-none');
+        }
+
+        loadShelters();
+    </script>
+</body>
+
+</html>

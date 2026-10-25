@@ -36,6 +36,9 @@ app.get('/api/test', (req, res) => {
 app.use('/api', require('./routes/auth'));
 // Public animals routes
 app.use('/api', require('./routes/animals'));
+// Public donations routes
+app.use('/api', require('./routes/donations'));
+
 
 //Admin routes
 app.use('/api/admin', require('./routes/admin-animals'));
