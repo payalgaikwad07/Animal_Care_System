@@ -57,11 +57,11 @@ INSERT INTO users (user_id, name, email, phone, address, password_hash) VALUES
 
 -- 4. ANIMALS
 INSERT INTO animal (animal_id, name, species, breed, age_months, gender, intake_date, status, image_url, notes, shelter_id) VALUES
-(1, 'Rocky', 'Dog', 'Indie / Mixed', 18, 'Male', '2026-10-01', 'Available', 'https://images.unsplash.com/photo-1543466835-00a7907e9de1', 'Playful, friendly with children, fully active', 1),
-(2, 'Bella', 'Cat', 'Persian Mix', 12, 'Female', '2026-10-10', 'Available', 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba', 'Calm and indoor loving, litter trained', 1),
-(3, 'Bruno', 'Dog', 'Labrador Retriever', 24, 'Male', '2026-10-15', 'Under Treatment', 'https://images.unsplash.com/photo-1552053831-71594a27632d', 'Under skin allergy treatment, recovering well', 1),
-(4, 'Luna', 'Cat', 'Domestic Shorthair', 8, 'Female', '2026-10-18', 'Available', 'https://images.unsplash.com/photo-1573865526739-10659fec78a5', 'Very affectionate kitten, vaccinated', 2),
-(5, 'Max', 'Dog', 'German Shepherd Mix', 30, 'Male', '2026-09-20', 'Available', 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95', 'Alert, trained, great companion dog', 2);
+(1, 'Rocky', 'Dog', 'Indie / Mixed', 18, 'Male', '2026-10-01', 'Available', '/images/animals/rocky.jpg', 'Playful, friendly with children, fully active', 1),
+(2, 'Bella', 'Cat', 'Persian Mix', 12, 'Female', '2026-10-10', 'Available', '/images/animals/bella.jpg', 'Calm and indoor loving, litter trained', 1),
+(3, 'Bruno', 'Dog', 'Labrador Retriever', 24, 'Male', '2026-10-15', 'Under Treatment', '/images/animals/bruno.jpg', 'Under skin allergy treatment, recovering well', 1),
+(4, 'Luna', 'Cat', 'Domestic Shorthair', 8, 'Female', '2026-10-18', 'Available', '/images/animals/luna.jpg', 'Very affectionate kitten, vaccinated', 2),
+(5, 'Max', 'Dog', 'German Shepherd Mix', 30, 'Male', '2026-09-20', 'Available', '/images/animals/max.jpg', 'Alert, trained, great companion dog', 2);
 
 -- 5. MEDICAL RECORDS
 INSERT INTO medical_record (record_id, animal_id, staff_id, visit_date, diagnosis, treatment) VALUES

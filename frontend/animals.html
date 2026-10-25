@@ -212,10 +212,10 @@
                 // Image
                 const img = document.createElement('img');
                 img.className = 'card-img-top animal-img';
-                img.src = a.image_url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1';
+                img.src = a.image_url || '/images/animals/default.jpg';
                 img.alt = a.name;
                 img.onerror = () => {
-                    img.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1';
+                    img.src = '/images/animals/default.jpg';
                 };
 
                 // Status badge: Show ONLY for Fostered or Under Treatment
