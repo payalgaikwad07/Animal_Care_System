@@ -46,6 +46,7 @@ app.use('/api/admin', require('./routes/admin-records'));
 app.use('/api/admin', require('./routes/admin-requests'));
 app.use('/api/admin', require('./routes/admin-staff'));
 app.use('/api/admin', require('./routes/admin-shelters'));
+app.use('/api/admin', require('./routes/admin-donations'));
 
 // Start the server
 app.listen(PORT, () => {
