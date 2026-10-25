@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Browse Animals - Animal Shelter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .animal-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .animal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+            color: inherit;
+        }
+
+        .animal-img {
+            height: 220px;
+            object-fit: cover;
+            background-color: #e9ecef;
+        }
+
+        .badge-status {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 0.8rem;
+            padding: 0.35em 0.65em;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Common Navigation Bar -->
+    <div id="nav"></div>
+
+    <main class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h2 class="mb-1">Find Your Companion</h2>
+                <p class="text-muted mb-0">Browse adoptable and fostered pets across our shelters.</p>
+            </div>
+            <button id="clearFiltersBtn" class="btn btn-outline-secondary btn-sm">Clear Filters</button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="card p-3 mb-4 shadow-sm bg-white border-0">
+            <div class="row g-3">
+                <div class="col-md-3 col-sm-6">
+                    <label for="speciesFilter" class="form-label small fw-semibold">Species</label>
+                    <select id="speciesFilter" class="form-select">
+                        <option value="">All Species</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <label for="breedFilter" class="form-label small fw-semibold">Breed</label>
+                    <select id="breedFilter" class="form-select">
+                        <option value="">All Breeds</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <label for="ageGroupFilter" class="form-label small fw-semibold">Age Group</label>
+                    <select id="ageGroupFilter" class="form-select">
+                        <option value="">All Ages</option>
+                        <option value="Baby">Baby (0–11 mos)</option>
+                        <option value="Young">Young (1–2 yrs)</option>
+                        <option value="Adult">Adult (3–6 yrs)</option>
+                        <option value="Senior">Senior (7+ yrs)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <label for="shelterFilter" class="form-label small fw-semibold">Location / Shelter</label>
+                    <select id="shelterFilter" class="form-select">
+                        <option value="">All Shelters</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animal Cards Grid -->
+        <div id="animalsGrid" class="row g-4"></div>
+
+        <!-- Empty State -->
+        <div id="noAnimalsMsg" class="alert alert-info text-center py-5 d-none my-4">
+            <h5 class="alert-heading">No animals found</h5>
+            <p class="mb-2">There are currently no pets matching your selected criteria.</p>
+            <button class="btn btn-primary btn-sm" onclick="clearFilters()">Reset All Filters</button>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorMsg" class="alert alert-danger text-center py-4 d-none my-4"></div>
+    </main>
+
+    <!-- Load common helper functions (loads nav & auth) -->
+    <script src="/js/common.js"></script>
+    <script>
+        // State variables
+        let filterOptions = { species: [], breeds: [], shelters: [] };
+
+        // Format months into readable age (e.g. "1 yr 6 mos" or "8 months")
+        function formatAge(months) {
+            if (!months || months < 0) return 'Unknown age';
+            if (months < 12) return months + (months === 1 ? ' month' : ' months');
+            const yrs = Math.floor(months / 12);
+            const rem = months % 12;
+            if (rem === 0) return yrs + (yrs === 1 ? ' year' : ' years');
+            return `${yrs} yr${yrs > 1 ? 's' : ''} ${rem} mo${rem > 1 ? 's' : ''}`;
+        }
+
+        // Populate dropdowns from GET /api/filters
+        async function loadFilterDropdowns(selectedSpecies = '') {
+            const url = selectedSpecies
+                ? `/api/filters?species=${encodeURIComponent(selectedSpecies)}`
+                : '/api/filters';
+            const res = await api(url);
+            if (!res.ok) return;
+
+            filterOptions = res.data;
+
+            // Populate species if not yet populated
+            const speciesSelect = document.getElementById('speciesFilter');
+            if (speciesSelect.options.length <= 1) {
+                filterOptions.species.forEach(sp => {
+                    const opt = document.createElement('option');
+                    opt.value = sp;
+                    opt.textContent = sp;
+                    speciesSelect.appendChild(opt);
+                });
+            }
+
+            // Populate breeds
+            const breedSelect = document.getElementById('breedFilter');
+            const currentBreed = breedSelect.value;
+            breedSelect.innerHTML = '<option value="">All Breeds</option>';
+            filterOptions.breeds.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b;
+                opt.textContent = b;
+                breedSelect.appendChild(opt);
+            });
+            if (filterOptions.breeds.includes(currentBreed)) {
+                breedSelect.value = currentBreed;
+            }
+
+            // Populate shelters if not yet populated
+            const shelterSelect = document.getElementById('shelterFilter');
+            if (shelterSelect.options.length <= 1) {
+                filterOptions.shelters.forEach(sh => {
+                    const opt = document.createElement('option');
+                    opt.value = sh.shelter_id;
+                    opt.textContent = `${sh.name} (${sh.city})`;
+                    shelterSelect.appendChild(opt);
+                });
+            }
+        }
+
+        // Fetch and render animals matching current filter choices
+        async function loadAnimals() {
+            const grid = document.getElementById('animalsGrid');
+            const emptyMsg = document.getElementById('noAnimalsMsg');
+            const errBox = document.getElementById('errorMsg');
+
+            errBox.classList.add('d-none');
+            emptyMsg.classList.add('d-none');
+            grid.innerHTML = '<div class="col-12 text-center py-5 text-muted">Loading animals...</div>';
+
+            const species = document.getElementById('speciesFilter').value;
+            const breed = document.getElementById('breedFilter').value;
+            const ageGroup = document.getElementById('ageGroupFilter').value;
+            const shelterId = document.getElementById('shelterFilter').value;
+
+            const params = new URLSearchParams();
+            if (species) params.set('species', species);
+            if (breed) params.set('breed', breed);
+            if (ageGroup) params.set('age_group', ageGroup);
+            if (shelterId) params.set('shelter_id', shelterId);
+
+            const res = await api('/api/animals?' + params.toString());
+            grid.innerHTML = '';
+
+            if (!res.ok) {
+                errBox.textContent = res.data.error || 'Failed to load animals. Please try again.';
+                errBox.classList.remove('d-none');
+                return;
+            }
+
+            const list = res.data || [];
+            if (list.length === 0) {
+                emptyMsg.classList.remove('d-none');
+                return;
+            }
+
+            // Build each animal card using safe DOM methods (textContent prevents XSS)
+            list.forEach(a => {
+                const col = document.createElement('div');
+                col.className = 'col-lg-4 col-md-6';
+
+                const card = document.createElement('a');
+                card.href = `/animal.html?id=${a.animal_id}`;
+                card.className = 'card h-100 shadow-sm animal-card position-relative border-0 overflow-hidden';
+
+                // Image
+                const img = document.createElement('img');
+                img.className = 'card-img-top animal-img';
+                img.src = a.image_url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1';
+                img.alt = a.name;
+                img.onerror = () => {
+                    img.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1';
+                };
+
+                // Status badge: Show ONLY for Fostered or Under Treatment
+                if (a.status === 'Fostered') {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-warning text-dark badge-status shadow-sm';
+                    badge.textContent = 'Fostered';
+                    card.appendChild(badge);
+                } else if (a.status === 'Under Treatment') {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-info text-dark badge-status shadow-sm';
+                    badge.textContent = 'Under Treatment';
+                    card.appendChild(badge);
+                }
+
+                const body = document.createElement('div');
+                body.className = 'card-body d-flex flex-column';
+
+                const title = document.createElement('h5');
+                title.className = 'card-title fw-bold mb-1';
+                title.textContent = a.name;
+
+                const sub = document.createElement('p');
+                sub.className = 'card-subtitle text-muted small mb-2';
+                sub.textContent = `${a.species}${a.breed ? ' • ' + a.breed : ''}`;
+
+                const details = document.createElement('div');
+                details.className = 'mt-auto pt-2 border-top d-flex justify-content-between text-secondary small';
+
+                const ageSpan = document.createElement('span');
+                ageSpan.textContent = `🐾 ${formatAge(a.age_months)}`;
+
+                const citySpan = document.createElement('span');
+                citySpan.textContent = `📍 ${a.shelter_city}`;
+
+                details.appendChild(ageSpan);
+                details.appendChild(citySpan);
+
+                body.appendChild(title);
+                body.appendChild(sub);
+                body.appendChild(details);
+
+                card.appendChild(img);
+                card.appendChild(body);
+                col.appendChild(card);
+                grid.appendChild(col);
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('speciesFilter').value = '';
+            document.getElementById('breedFilter').value = '';
+            document.getElementById('ageGroupFilter').value = '';
+            document.getElementById('shelterFilter').value = '';
+            loadFilterDropdowns('');
+            loadAnimals();
+        }
+
+        // Event listeners
+        document.getElementById('speciesFilter').addEventListener('change', async (e) => {
+            await loadFilterDropdowns(e.target.value);
+            loadAnimals();
+        });
+        document.getElementById('breedFilter').addEventListener('change', loadAnimals);
+        document.getElementById('ageGroupFilter').addEventListener('change', loadAnimals);
+        document.getElementById('shelterFilter').addEventListener('change', loadAnimals);
+        document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+
+        // Initial page load
+        (async function init() {
+            await loadFilterDropdowns();
+            await loadAnimals();
+        })();
+    </script>
+</body>
+
+</html>

@@ -34,6 +34,9 @@ app.get('/api/test', (req, res) => {
 
 // Authentication routes
 app.use('/api', require('./routes/auth'));
+// Public animals routes
+app.use('/api', require('./routes/animals'));
+
 //Admin routes
 app.use('/api/admin', require('./routes/admin-animals'));
 app.use('/api/admin', require('./routes/admin-records'));
