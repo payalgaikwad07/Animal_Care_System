@@ -38,6 +38,8 @@ app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/animals'));
 // Public donations routes
 app.use('/api', require('./routes/donations'));
+// User requests routes (Adopt, Foster, My Requests)
+app.use('/api', require('./routes/requests'));
 
 
 //Admin routes

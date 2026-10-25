@@ -17,11 +17,13 @@ async function loadNav() {
   const me = await api('/api/me');
 
   if (me.ok && me.data.loggedIn) {
-    const adminLink = (me.data.role === 'Admin' || me.data.role === 'Global Admin')
-      ? '<a class="btn btn-warning btn-sm me-2" href="/admin/index.html">Admin Dashboard</a>'
-      : '';
+    // Show 'My Requests' link for normal users
+    if (me.data.role === 'user') {
+      const myReqLink = document.getElementById('navMyRequests');
+      if (myReqLink) myReqLink.classList.remove('d-none');
+    }
+
     box.innerHTML =
-      adminLink +
       '<span id="uname" class="text-white me-2"></span>' +
       '<button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>';
     document.getElementById('uname').textContent = me.data.name;

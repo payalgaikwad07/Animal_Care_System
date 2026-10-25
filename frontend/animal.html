@@ -208,9 +208,25 @@
 
             if (a.status === 'Available') {
                 actionButtons.classList.remove('d-none');
-                document.getElementById('adoptBtn').href = `/adopt.html?id=${a.animal_id}`;
-                document.getElementById('fosterBtn').href = `/foster.html?id=${a.animal_id}`;
-            } else {
+
+                // Check if user is logged in
+                const me = await api('/api/me');
+                const isLoggedInUser = me.ok && me.data.loggedIn && me.data.role === 'user';
+
+                const adoptBtn = document.getElementById('adoptBtn');
+                const fosterBtn = document.getElementById('fosterBtn');
+
+                if (isLoggedInUser) {
+                    adoptBtn.href = `/adopt.html?id=${a.animal_id}`;
+                    fosterBtn.href = `/foster.html?id=${a.animal_id}`;
+                } else {
+                    // Logged-out visitor redirect with safe ?next=
+                    const nextUrl = encodeURIComponent(`/animal.html?id=${a.animal_id}`);
+                    adoptBtn.href = `/login.html?next=${nextUrl}`;
+                    fosterBtn.href = `/login.html?next=${nextUrl}`;
+                }
+            }
+            else {
                 notAvailableNotice.classList.remove('d-none');
                 notAvailableText.textContent = `This pet is currently ${a.status} and cannot be requested at this time.`;
             }
