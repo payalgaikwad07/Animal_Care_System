@@ -77,7 +77,7 @@ async function load() {
     const link = document.createElement('a');
     link.className = 'btn btn-sm btn-outline-primary';
     link.href = '/admin/animal-form.html?id=' + a.animal_id;
-    link.textContent = 'View / Edit';
+    link.textContent = (me && me.role === 'Global Admin') ? 'View' : 'View / Edit';
     addCell(tr, link);
 
     body.appendChild(tr);
@@ -97,6 +97,8 @@ async function start() {
   if (o.ok) {
     fillSelect(document.getElementById('f-species'), o.data.species);
     if (me.role === 'Global Admin') {
+      const sTab = document.getElementById('shelters-tab');
+      if (sTab) sTab.classList.remove('d-none');
       document.getElementById('shelter-box').classList.remove('d-none');
       fillSelect(document.getElementById('f-shelter'), o.data.shelters, 'shelter_id', 'name');
 

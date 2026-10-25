@@ -146,6 +146,8 @@ async function start() {
   canAct = me.role === 'Admin';
 
   if (me.role === 'Global Admin') {
+    const sTab = document.getElementById('shelters-tab');
+    if (sTab) sTab.classList.remove('d-none');
     const o = await api('/api/admin/options');
     if (o.ok) {
       $('shelter-box').classList.remove('d-none');
