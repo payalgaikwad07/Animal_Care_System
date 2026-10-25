@@ -25,7 +25,7 @@ app.use(session({
 }));
 
 // Serve frontend files
-app.use('/api', require('./routes/auth'));
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Temporary test route
 app.get('/api/test', (req, res) => {
