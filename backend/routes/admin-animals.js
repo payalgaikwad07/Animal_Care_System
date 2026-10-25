@@ -51,8 +51,14 @@ router.get('/options', async (req, res) => {
     const sid = shelterOf(req);
     const [species] = await db.query('SELECT DISTINCT species FROM animal ORDER BY species');
     const [shelters] = sid
-      ? await db.query('SELECT shelter_id, name, city FROM shelter WHERE shelter_id = ?', [sid])
-      : await db.query('SELECT shelter_id, name, city FROM shelter ORDER BY name');
+      ? await db.query(
+          `SELECT s.shelter_id, s.name, s.city,
+                  (SELECT COUNT(*) FROM staff st WHERE st.shelter_id = s.shelter_id AND st.role = 'Admin') AS admin_count
+           FROM shelter s WHERE s.shelter_id = ?`, [sid])
+      : await db.query(
+          `SELECT s.shelter_id, s.name, s.city,
+                  (SELECT COUNT(*) FROM staff st WHERE st.shelter_id = s.shelter_id AND st.role = 'Admin') AS admin_count
+           FROM shelter s ORDER BY s.name`);
     const [staff] = sid
       ? await db.query("SELECT staff_id, name, role FROM staff WHERE shelter_id = ? AND role IN ('Vet','Caretaker','Admin')", [sid])
       : [[]];

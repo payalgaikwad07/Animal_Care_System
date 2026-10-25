@@ -79,8 +79,19 @@ router.post('/staff', ...creators, async (req, res) => {
     }
 
     try {
-      const [sh] = await db.query('SELECT shelter_id FROM shelter WHERE shelter_id = ?', [shelter_id]);
+      const [sh] = await db.query('SELECT shelter_id, name FROM shelter WHERE shelter_id = ?', [shelter_id]);
       if (!sh.length) return res.status(400).json({ error: 'Shelter not found' });
+
+      // Enforce 1:1 shelter to shelter-admin rule
+      const [existingAdmin] = await db.query(
+        "SELECT staff_id, name FROM staff WHERE shelter_id = ? AND role = 'Admin'",
+        [shelter_id]
+      );
+      if (existingAdmin.length) {
+        return res.status(400).json({
+          error: `Shelter "${sh[0].name}" already has an assigned Admin (${existingAdmin[0].name}). Each shelter can only have one Admin.`
+        });
+      }
 
       const [dupStaff] = await db.query('SELECT staff_id FROM staff WHERE email = ?', [email]);
       const [dupUser] = await db.query('SELECT user_id FROM users WHERE email = ?', [email]);

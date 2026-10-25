@@ -28,8 +28,8 @@ function resetForm() {
   $('f').reset();
   if (me && me.role === 'Global Admin') {
     $('form-title').textContent = 'Add Shelter Admin';
-    $('form-desc').textContent = 'Create a login for a local shelter admin. Choose their shelter and set a temporary password.';
     $('save').textContent = 'Add Shelter Admin';
+    refreshShelterOptions();
   } else {
     $('form-title').textContent = 'Add staff member';
     $('form-desc').textContent = 'Staff added here do not get a login. They appear in the "Examined by" list for medical records.';
@@ -88,6 +88,51 @@ async function load() {
   });
 }
 
+async function refreshShelterOptions() {
+  if (!me || me.role !== 'Global Admin') return;
+  const o = await api('/api/admin/options');
+  if (!o.ok) return;
+
+  // Filter dropdown: shows ALL shelters
+  const currentFilter = $('f-shelter').value;
+  $('f-shelter').innerHTML = '<option value="">All shelters</option>';
+  o.data.shelters.forEach((s) => {
+    const op = document.createElement('option');
+    op.value = s.shelter_id;
+    op.textContent = s.name;
+    $('f-shelter').appendChild(op);
+  });
+  $('f-shelter').value = currentFilter;
+
+  // Form dropdown: ONLY shelters that do NOT have an admin yet (admin_count == 0)
+  $('staff-shelter').innerHTML = '';
+  const unassigned = o.data.shelters.filter((s) => Number(s.admin_count) === 0);
+
+  if (unassigned.length === 0) {
+    const op = document.createElement('option');
+    op.value = '';
+    op.textContent = 'All shelters currently have an assigned Admin';
+    $('staff-shelter').appendChild(op);
+    $('staff-shelter').disabled = true;
+    $('save').disabled = true;
+    $('form-desc').textContent = 'All shelters currently have an assigned Admin. To add a new Admin, first create a new shelter in the Shelters tab.';
+  } else {
+    $('staff-shelter').disabled = false;
+    $('save').disabled = false;
+    const def = document.createElement('option');
+    def.value = '';
+    def.textContent = 'Choose Shelter (unassigned only)';
+    $('staff-shelter').appendChild(def);
+    unassigned.forEach((s) => {
+      const op = document.createElement('option');
+      op.value = s.shelter_id;
+      op.textContent = `${s.name} (${s.city || 'Unassigned'})`;
+      $('staff-shelter').appendChild(op);
+    });
+    $('form-desc').textContent = 'Create a login for a local shelter admin. Choose an unassigned shelter and set a temporary password.';
+  }
+}
+
 async function start() {
   // This check only decides what the page shows. The real protection is on the server.
   const m = await api('/api/me');
@@ -97,27 +142,14 @@ async function start() {
   }
   me = m.data;
 
-  const o = await api('/api/admin/options');
-
   if (me.role === 'Global Admin') {
     const sTab = document.getElementById('shelters-tab');
     if (sTab) sTab.classList.remove('d-none');
     // Show table shelter filter
     $('shelter-box').classList.remove('d-none');
-    if (o.ok) {
-      o.data.shelters.forEach((s) => {
-        const op1 = document.createElement('option');
-        op1.value = s.shelter_id;
-        op1.textContent = s.name;
-        $('f-shelter').appendChild(op1);
-
-        const op2 = document.createElement('option');
-        op2.value = s.shelter_id;
-        op2.textContent = s.name;
-        $('staff-shelter').appendChild(op2);
-      });
-    }
     $('f-shelter').addEventListener('change', load);
+
+    await refreshShelterOptions();
 
     // Configure form for adding Shelter Admins
     $('f').classList.remove('d-none');
@@ -125,7 +157,6 @@ async function start() {
     $('shelter-input-group').classList.remove('d-none');
     $('password-input-group').classList.remove('d-none');
     $('form-title').textContent = 'Add Shelter Admin';
-    $('form-desc').textContent = 'Create a login for a local shelter admin. Choose their shelter and set a temporary password.';
     $('save').textContent = 'Add Shelter Admin';
   } else {
     // Shelter Admin: adds local staff (Vet, Caretaker)
@@ -171,6 +202,7 @@ async function start() {
 
       showMsg('Shelter Admin created with login access. Give them their email and password.', true);
       resetForm();
+      await refreshShelterOptions();
       load();
       return;
     }
