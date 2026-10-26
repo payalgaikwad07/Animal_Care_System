@@ -29,11 +29,10 @@ async function checkMedical(b, sid) {
   if (!isDate(b.visit_date)) return 'Visit date is required (like 2026-10-25)';
   if (!b.diagnosis || b.diagnosis.length > 255) return 'Diagnosis is required (max 255 characters)';
   if (b.treatment && b.treatment.length > 255) return 'Treatment is too long (max 255 characters)';
-  if (b.staff_id) {
-    // "examined by" must be staff of this same shelter
-    const [st] = await db.query('SELECT staff_id FROM staff WHERE staff_id = ? AND shelter_id = ?', [b.staff_id, sid]);
-    if (!st.length) return 'Examiner must be staff of this shelter';
-  }
+  if (!b.staff_id) return 'Examining staff member is required';
+  // "examined by" must be staff of this same shelter
+  const [st] = await db.query('SELECT staff_id FROM staff WHERE staff_id = ? AND shelter_id = ?', [b.staff_id, sid]);
+  if (!st.length) return 'Examiner must be staff of this shelter';
   return null;
 }
 

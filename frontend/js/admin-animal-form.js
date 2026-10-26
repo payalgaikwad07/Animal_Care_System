@@ -153,11 +153,15 @@ $('f').addEventListener('submit', async (e) => {
     if (me.role === 'Global Admin') b.shelter_id = $('shelter').value;
 
     if ($('diag').value.trim()) {
+      if (!$('staff').value) {
+        showMsg('Please choose an examining staff member for the initial medical checkup.', false);
+        return;
+      }
       b.medical = {
         visit_date: $('visit').value,
         diagnosis: $('diag').value.trim(),
         treatment: $('treat').value.trim(),
-        staff_id: $('staff').value || null
+        staff_id: Number($('staff').value)
       };
     }
 

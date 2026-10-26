@@ -79,7 +79,7 @@ CREATE TABLE animal (
 CREATE TABLE medical_record (
   record_id  INT AUTO_INCREMENT PRIMARY KEY,
   animal_id  INT NOT NULL,
-  staff_id   INT NULL,
+  staff_id   INT NOT NULL,
   visit_date DATE NOT NULL,
   diagnosis  VARCHAR(255) NOT NULL,
   treatment  VARCHAR(255),

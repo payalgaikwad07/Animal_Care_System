@@ -52,11 +52,11 @@ router.get('/options', async (req, res) => {
     const [species] = await db.query('SELECT DISTINCT species FROM animal ORDER BY species');
     const [shelters] = sid
       ? await db.query(
-          `SELECT s.shelter_id, s.name, s.city,
+        `SELECT s.shelter_id, s.name, s.city,
                   (SELECT COUNT(*) FROM staff st WHERE st.shelter_id = s.shelter_id AND st.role = 'Admin') AS admin_count
            FROM shelter s WHERE s.shelter_id = ?`, [sid])
       : await db.query(
-          `SELECT s.shelter_id, s.name, s.city,
+        `SELECT s.shelter_id, s.name, s.city,
                   (SELECT COUNT(*) FROM staff st WHERE st.shelter_id = s.shelter_id AND st.role = 'Admin') AS admin_count
            FROM shelter s ORDER BY s.name`);
     const [staff] = sid
@@ -110,7 +110,7 @@ router.get('/animals/:id', async (req, res) => {
     const [shelter] = await db.query('SELECT name FROM shelter WHERE shelter_id = ?', [a.shelter_id]);
     const [medical] = await db.query(
       `SELECT m.record_id, m.staff_id, m.visit_date, m.diagnosis, m.treatment, st.name AS examined_by
-       FROM medical_record m LEFT JOIN staff st ON st.staff_id = m.staff_id
+       FROM medical_record m JOIN staff st ON st.staff_id = m.staff_id
        WHERE m.animal_id = ? ORDER BY m.visit_date DESC, m.record_id DESC`, [a.animal_id]);
     const [vaccines] = await db.query(
       'SELECT vaccination_id, vaccine_name, date_given, next_due_date FROM vaccination WHERE animal_id = ? ORDER BY date_given DESC, vaccination_id DESC',
@@ -173,7 +173,8 @@ router.post('/animals', async (req, res) => {
 
     // "examined by" must be staff of this same shelter
     let staffId = null;
-    if (med && med.staff_id) {
+    if (med) {
+      if (!med.staff_id) return res.status(400).json({ error: 'Examining staff member is required for medical checkup' });
       const [st] = await conn.query('SELECT staff_id FROM staff WHERE staff_id = ? AND shelter_id = ?', [med.staff_id, sid]);
       if (!st.length) return res.status(400).json({ error: 'Examiner must be staff of this shelter' });
       staffId = st[0].staff_id;

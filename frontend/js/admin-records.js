@@ -26,7 +26,7 @@
       <div class="row g-2">
         <div class="col-md-3"><input type="date" id="m-date" class="form-control" required></div>
         <div class="col-md-5"><input type="text" id="m-diag" class="form-control" placeholder="Diagnosis" maxlength="255" required></div>
-        <div class="col-md-4"><select id="m-staff" class="form-select"><option value="">Examined by: not recorded</option></select></div>
+        <div class="col-md-4"><select id="m-staff" class="form-select" required><option value="">Choose examining staff</option></select></div>
         <div class="col-md-8"><input type="text" id="m-treat" class="form-control" placeholder="Treatment" maxlength="255"></div>
         <div class="col-md-4">
           <button class="btn btn-primary" id="m-save">Add</button>
@@ -170,11 +170,16 @@
     $('med-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       $('med-err').textContent = '';
+      const staffVal = $('m-staff').value;
+      if (!staffVal) {
+        $('med-err').textContent = 'Please choose an examining staff member.';
+        return;
+      }
       const b = {
         visit_date: $('m-date').value,
         diagnosis: $('m-diag').value.trim(),
         treatment: $('m-treat').value.trim(),
-        staff_id: $('m-staff').value || null
+        staff_id: Number(staffVal)
       };
       const r = medId
         ? await api('/api/admin/medical/' + medId, 'PUT', b)
